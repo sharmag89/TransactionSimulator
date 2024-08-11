@@ -1,0 +1,53 @@
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: db
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/data/postgres:/var/lib/postgresql/data
+      - ./db_user.sql:/docker-entrypoint-initdb.d/1-user.sql
+      - ./db_schema.sql:/docker-entrypoint-initdb.d/2-schema.sql
+      - ./db_sample_data.sql:/docker-entrypoint-initdb.d/3-sample_data.sql
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=admin
+    networks:
+      - springboot-db-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  consumer-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    restart: always
+    links:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/transaction_db
+      - SPRING_DATASOURCE_USERNAME=read_write_user
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - springboot-db-network
+    volumes:
+      - .:/consumer
+
+    
+
+networks:
+  springboot-db-network:
+    name: springboot-db-network
+
+volumes:
+  database:
+

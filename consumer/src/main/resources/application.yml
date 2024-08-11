@@ -1,0 +1,78 @@
+server:
+  port: ${PORT:8090}
+
+spring:
+  application:
+    name: consumer
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+    producer:
+      bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+      #            transaction-id-prefix: myTrans.
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+      auto-commit-interval-ms: 10000
+      max-poll-records: 5
+      group-id: 'txnConsumer'
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        isolation:
+          level: read_committed
+        spring:
+          json:
+            trusted:
+              packages: '*'
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format-sql: true
+        default_schema: master
+  datasource:
+    url: jdbc:postgresql://${SQL_HOST:localhost}:${SQL_PORT:5432}/${SQL_DATABASE:transaction_db}
+#    url: ${SQL_HOST}
+    username: ${SQL_DATABASE_USER:read_write_user}
+    password: ${SQL_DATABASE_PASSWORD:password}
+    driverClassName: org.postgresql.Driver
+  jackson:
+    serialization:
+      write-dates-with-zone-id: false
+      WRITE_DATES_AS_TIMESTAMPS: false
+    deserialization:
+      accept-float-as-int: false
+    date-format: yyyy-MM-dd
+
+# Show details of health endpoint
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    show:
+      details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+
+material:
+  authorization-app: 'http://${AUTH_APP_NAME:localhost:8084}'

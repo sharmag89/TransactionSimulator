@@ -1,0 +1,60 @@
+#info:
+#    name: Transaction Producer
+#    description: Transaction Producer API
+#
+#swagger:
+#    title: Transaction Producer API
+#    description: REST API for Publishing to Kafka
+
+server:
+    port: ${PORT:8080}
+
+spring:
+    application:
+        name: producer
+    kafka:
+        bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+        producer:
+            bootstrap-servers: ${KAFKA_HOST:localhost:9092}
+#            transaction-id-prefix: myTrans.
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    jackson:
+        serialization:
+            write-dates-with-zone-id: false
+            WRITE_DATES_AS_TIMESTAMPS: false
+        deserialization:
+            accept-float-as-int: false
+        date-format: yyyy-MM-dd
+
+    springdoc:
+        api-docs:
+            path: '/api-docs'
+
+# Show details of health endpoint
+management:
+    endpoints:
+        web:
+            exposure:
+                include: '*'
+    health:
+        show:
+            details: always
+    metrics:
+        tags:
+            application: ${spring.application.name}
+        distribution:
+            percentiles-histogram:
+                http:
+                    server:
+                        requests: true
+    tracing:
+        sampling:
+            probability: 1.0
+
+logging:
+    pattern:
+        level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
+
+material:
+    authorization-app: 'http://${AUTH_APP_NAME:localhost:8084}'

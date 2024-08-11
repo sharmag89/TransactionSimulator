@@ -1,0 +1,50 @@
+server:
+  port: ${PORT:8084}
+
+spring:
+  application:
+    name: authorization
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format-sql: true
+        default_schema: master
+  datasource:
+    url: jdbc:postgresql://${SQL_HOST:localhost}:${SQL_PORT:5432}/${SQL_DATABASE:transaction_db}
+    username: ${SQL_DATABASE_USER:read_write_user}
+    password: ${SQL_DATABASE_PASSWORD:password}
+    driverClassName: org.postgresql.Driver
+  jackson:
+    serialization:
+      write-dates-with-zone-id: false
+      WRITE_DATES_AS_TIMESTAMPS: false
+    deserialization:
+      accept-float-as-int: false
+    date-format: yyyy-MM-dd
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    show:
+      details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
