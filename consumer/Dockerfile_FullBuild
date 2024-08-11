@@ -1,0 +1,32 @@
+FROM eclipse-temurin:21
+LABEL authors="gauravsharma"
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y wget unzip
+
+# Download Gradle 7.5.1
+WORKDIR /opt
+RUN wget https://services.gradle.org/distributions/gradle-8.7-bin.zip && \
+    unzip gradle-8.7-bin.zip
+
+# Set environment variables for Gradle
+ENV GRADLE_HOME=/opt/gradle-8.7
+ENV PATH=$GRADLE_HOME/bin:$PATH
+
+# Set the working directory inside the container
+WORKDIR /consumer-app
+
+# Copy your project files
+COPY ./consumer/. .
+
+# Build the project
+RUN gradle clean build -x bootJar
+
+RUN cp ./build/libs/*.jar ./
+
+#WORKDIR /consumer-app
+#CMD ["./gradlew", "clean", "build", "bootJar"]
+#COPY /consumer/build/libs/*.jar app.jar
+
+#EXPOSE PORT
+ENTRYPOINT ["java", "-jar", "app.jar"]

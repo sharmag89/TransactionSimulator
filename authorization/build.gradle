@@ -36,6 +36,7 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	implementation 'com.github.loki4j:loki-logback-appender:1.5.2'
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 //	implementation 'com.netflix.feign:feign-jackson:8.1.0'
 	implementation 'io.micrometer:micrometer-registry-prometheus'

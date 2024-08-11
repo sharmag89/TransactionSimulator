@@ -85,9 +85,11 @@ services:
     restart: always
     depends_on:
       - broker1
+      - loki
     environment:
       - KAFKA_HOST=broker1:19092
       - AUTH_APP_NAME=authorization-app:8084
+      - LOKI_HOST=loki
     networks:
       - localnet
   
@@ -102,10 +104,13 @@ services:
       - producer-app
       - broker1
       - postgres
+      - loki
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/transaction_db
       - SPRING_DATASOURCE_USERNAME=read_write_user
       - SPRING_DATASOURCE_PASSWORD=password
+      - AUTH_APP_NAME=authorization-app:8084
+      - LOKI_HOST=loki
       - KAFKA_HOST=broker1:19092
     networks:
       - localnet
@@ -120,13 +125,52 @@ services:
     restart: always
     depends_on:
       - postgres
+      - loki
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/transaction_db
       - SPRING_DATASOURCE_USERNAME=read_write_user
       - SPRING_DATASOURCE_PASSWORD=password
+      - LOKI_HOST=loki
     networks:
       - localnet
   
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - localnet
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+    depends_on:
+      - consumer-app
+      - producer-app
+      - authorization-app
+    ports:
+      - 9090:9090
+    networks:
+      - localnet
+
+  grafana:
+    image: grafana/grafana
+    user: "472"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - ~/data/grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      #env_file:
+      #- ./grafana/config.monitoring
+    restart: always
+    networks:
+      - localnet
+
 networks:
   localnet:
     driver: bridge

@@ -40,7 +40,7 @@ public class TransactionProducer {
         List<String> allCardNumbers = detailsFeignClient.listAllCards(authServiceUrl);
         List<Integer> allMerchantIds = detailsFeignClient.listAllMerchants(authServiceUrl);
         if(allCardNumbers.isEmpty() || allMerchantIds.isEmpty()) {
-            log.info("Cards of Merchants list empty. Returning.");
+            log.error("Cards OR Merchants list empty. Returning!");
             return;
         }
         long waitTime = (timeInSeconds*1000/messageCount);

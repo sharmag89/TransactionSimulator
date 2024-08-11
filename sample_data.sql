@@ -1,4 +1,4 @@
-/c transaction_db
+\c transaction_db;
 
 insert into master.card_type values (1,'Rewards', 10000, 50000, now(), now());
 insert into master.card_type values (2,'Signature', 20000, 80000, now(), now());
